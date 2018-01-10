@@ -22,61 +22,50 @@ public class Square extends StackPane {
     private boolean hasBomb;
     private int nbNeighbors;
 
-    private boolean isOpen = false;
-    private boolean bombClicked = false;
-    private boolean clickable = true;
+    private boolean isOpen;
+    private boolean bombClicked;
+    private boolean clickable;
 
     private Rectangle border;
-    private Text text = new Text();
-    private Button button = new Button();
+    private Text text;
+    private Button button;
 
     private Callback callback;
 
     public Square(int i, int j, int squareSize) {
-
         this.i = i;
         this.j = j;
         this.squareSize = squareSize;
-        this.border = new Rectangle(squareSize, squareSize, Color.LIGHTGREY);
+    }
 
+    public void init(boolean b) {
+        hasBomb = b;
+        
+        isOpen = false;
+        bombClicked = false;
+        clickable = true;
+        text = new Text();
+
+        border = new Rectangle(squareSize, squareSize, Color.LIGHTGREY);
+        button = new Button();
+        getChildren().clear();
         getChildren().addAll(border, button);
 
         setTranslateX(j * squareSize);
         setTranslateY(i * squareSize);
+        
         button.setMaxWidth(squareSize);
         button.setMaxHeight(squareSize);
         button.setStyle("-fx-focus-color: transparent;-fx-background-insets: -1.4, 0, 1, 2;\r\n" + "");
         button.setOnMouseClicked(e -> click(e));
 
-        // label.setMaxWidth(mineSize-2);
-        // label.setAlignment(Pos.CENTER);
-
-        // setHalignment(label, HPos.CENTER);
-
-        // setAlignment(Pos.CENTER_RIGHT);
-        // setFillWidth(label, true);
-        // label.setMaxWidth(Double.MAX_VALUE);
-        //// border.setStroke(Color.LIGHTGRAY);
-        //
-        // text.setFont(Font.font(18));
-        //// text.setText(hasBomb ? "X" : "");
-        // text.setText("X");
-        // text.setVisible(false);
-        //
-        // Button button = new Button("X");
-        // button.setOnMouseClicked(e -> click());
-        //
-        // getChildren().addAll(button);
-
     }
 
     private void click(MouseEvent e) {
         if (e.getButton() == MouseButton.PRIMARY && clickable) {
-            System.out.println("Left button clicked");
             if (isOpen)
                 return;
             if (hasBomb) {
-                // text.setText("X");
                 bombClicked = true;
                 callback.gameOver();
             } else if (nbNeighbors == 0) {
@@ -92,32 +81,17 @@ public class Square extends StackPane {
                 button.setText("");
                 button.setGraphic(null);
             } else {
-                // button.setText("!");
                 File file = new File("src/flag.png");
                 ImageView image = new ImageView(new Image(file.toURI().toString()));
-
                 image.setFitHeight(squareSize);
                 image.setFitWidth(squareSize);
-                // button.setAlignment(Pos.BASELINE_LEFT);
                 button.setGraphic(image);
-                // button.setContentDisplay(ContentDisplay.CENTER);
                 button.setPadding(Insets.EMPTY);
-
-                // getChildren().clear();
-                // getChildren().addAll(border, text);
-
             }
         }
     }
 
     public void open() {
-        //
-        // if (hasBomb) {
-        // System.out.println("Game Over");
-        // scene.setRoot(createContent());
-        // return;
-        // }
-        //
         isOpen = true;
         button.setVisible(false);
         border.setStroke(Color.WHITE);
@@ -125,31 +99,18 @@ public class Square extends StackPane {
         text.setFont(Font.font(18));
 
         if (hasBomb) {
-            // text.setText("X");
-
-            // setStyle("-fx-padding:0px;");
             if (bombClicked) {
                 this.border = new Rectangle(squareSize, squareSize, Color.RED);
             }
-
-            // button.setText("!");
             File file = new File("src/bomb.png");
             ImageView image = new ImageView(new Image(file.toURI().toString()));
-
             image.setFitHeight(squareSize);
             image.setFitWidth(squareSize);
-            // button.setAlignment(Pos.BASELINE_LEFT);
-
             getChildren().clear();
             getChildren().addAll(border, image);
-
-            if (bombClicked) {
-                // text.setFill(Color.RED);
-            }
         } else if (nbNeighbors != 0) {
             text.setText(String.valueOf(this.nbNeighbors));
             text.setFont(Font.font(null, FontWeight.BOLD, 16));
-
             switch (this.nbNeighbors) {
             case 1:
                 text.setFill(Color.BLUE);
@@ -188,12 +149,6 @@ public class Square extends StackPane {
 
             setTranslateX(j * squareSize);
             setTranslateY(i * squareSize);
-
-            // border.setFill(null);
-            //
-            // if (text.getText().isEmpty()) {
-            // getNeighbors(this).forEach(Tile::open);
-            // }
         }
     }
 
@@ -211,11 +166,5 @@ public class Square extends StackPane {
 
     public void register(Callback callback) {
         this.callback = callback;
-    }
-
-    public void reset(boolean b) {
-        this.hasBomb = b;
-        // TODO Auto-generated method stub
-        
     }
 }

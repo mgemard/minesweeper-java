@@ -38,11 +38,10 @@ public class Game extends Application implements Callback {
         launch();
     }
 
-
     @Override
     public void start(Stage primaryStage) {
         try {
-           
+
             primaryStage.setTitle("Minesweeper");
 
             GridPane gridPane = new GridPane();
@@ -50,83 +49,67 @@ public class Game extends Application implements Callback {
             Pane score = new Pane();
             score.setMinHeight(SCORE_WIDTH);
 
-            // Text text = new Text("hi");
-            // text.setFill(Color.BLACK);
-            // text.setVisible(true);
-            // score.getChildren().add(text);
-            //
-
-            // button.setText("!");
-
             buttonNewGame = new Button();
             buttonNewGame.setOnMouseClicked(e -> newGame());
-            
+
             score.getChildren().add(buttonNewGame);
 
             board = new Pane();
             board.setPrefSize(WIDTH, HEIGHT);
-            
+
             for (int i = 0; i < NB_SQUARE_X; i++) {
                 for (int j = 0; j < NB_SQUARE_Y; j++) {
                     Random rand = new Random();
                     Square square = new Square(i, j, SQUARE_SIZE);
+                    board.getChildren().add(square);
                     square.register(this);
                     this.squares[i][j] = square;
                 }
             }
-            for (int i = 0; i < NB_SQUARE_X; i++) {
-                for (int j = 0; j < NB_SQUARE_Y; j++) {
-                    this.squares[i][j].setNbNeighbors(getNbNeighbors(i, j));
-                    board.getChildren().add(this.squares[i][j]);
 
-                }
-            }
-            
             gridPane.add(score, 0, 0, 1, 1);
             gridPane.add(board, 0, 1, 1, 1);
-
-            // Color color = Color.rgb(0, 0, 0, 0.35);
-            // BackgroundFill fill = new BackgroundFill(color, CornerRadii.EMPTY,
-            // Insets.EMPTY);
-            // root.setBackground(new Background(fill));
 
             Scene scene = new Scene(gridPane, WIDTH, HEIGHT + SCORE_WIDTH);
             scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
             primaryStage.setScene(scene);
             primaryStage.setResizable(false);
             primaryStage.show();
-            
-            
-            
-            
-            
+
             initGame();
-            
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
 
     private void initGame() {
         setSmileyImage("smiley_happy");
-        
+
         for (int i = 0; i < NB_SQUARE_X; i++) {
             for (int j = 0; j < NB_SQUARE_Y; j++) {
                 Random rand = new Random();
-                squares[i][j].reset(rand.nextFloat() < 0.1);
+                squares[i][j].init(rand.nextFloat() < 0.1);
             }
         }
-   
-        
-    }
+        for (int i = 0; i < NB_SQUARE_X; i++) {
+            for (int j = 0; j < NB_SQUARE_Y; j++) {
+                this.squares[i][j].setNbNeighbors(getNbNeighbors(i, j));
+            }
+        }
 
+    }
 
     private void newGame() {
         initGame();
     }
 
+    /**
+     * Calculate the number of bombs around a square
+     * @param i
+     * @param j
+     * @return number of surrounding bombs
+     */
     private int getNbNeighbors(int i, int j) {
         int nbNeighbors = 0;
         if (i > 0) {
@@ -153,16 +136,11 @@ public class Game extends Application implements Callback {
         if (j < NB_SQUARE_Y - 1) {
             nbNeighbors += squares[i][j + 1].hasBomb() ? 1 : 0;
         }
-
-        // System.out.println(i + ":" + j + " " + nbNeighbors);
         return nbNeighbors;
     }
 
     @Override
     public void gameOver() {
-        
-//
-        
         setSmileyImage("smiley_sad");
         System.out.println("game over");
         for (int i = 0; i < NB_SQUARE_X; i++) {
@@ -173,34 +151,44 @@ public class Game extends Application implements Callback {
 
     }
 
+    /**
+     * Callback to tell Game that a square with no surrounding bomb has been click.
+     * 
+     * @param i
+     *            index
+     * @param j
+     *            index
+     */
     @Override
-    public void openNeighbors(int x, int y) {
-        System.out.println("no neighbors clicked " + x + ":" + y);
+    public void openNeighbors(int i, int j) {
+        System.out.println("no neighbors clicked " + i + ":" + j);
         squaresToOpen = new boolean[NB_SQUARE_X][NB_SQUARE_Y];
-        // squaresToOpen[x][y] = true;
-
-        open(x, y);
+        open(i, j);
     }
 
-    public void open(int x, int y) {
-        if (x < 0 || y < 0 || x >= NB_SQUARE_X || y >= NB_SQUARE_Y || squaresToOpen[x][y])
+    /**
+     * Open squares that are connected to the clicked square with no adjacent bomb.
+     * Use recursion.
+     * @param i
+     * @param j
+     */
+    public void open(int i, int j) {
+        if (i < 0 || j < 0 || i >= NB_SQUARE_X || j >= NB_SQUARE_Y || squaresToOpen[i][j])
             return;
-        squaresToOpen[x][y] = true;
-        squares[x][y].open();
-        if (squares[x][y].getNbNeighbors() == 0) {
-            for (int i = x - 1; i <= x + 1; i++) {
-                for (int j = y - 1; j <= y + 1; j++) {
-                    // if (i >= 0 && j >= 0 && i <= NB_SQUARE_X - 1 && j <= NB_SQUARE_Y - 1) {
-                    open(i, j);
-                    // }
+        squaresToOpen[i][j] = true;
+        squares[i][j].open();
+        if (squares[i][j].getNbNeighbors() == 0) {
+            for (int k = i - 1; k <= i + 1; k++) {
+                for (int l = j - 1; l <= j + 1; l++) {
+                    open(k, l);
                 }
             }
         }
 
     }
-    
+
     public void setSmileyImage(String smiley) {
-        File file = new File("src/"+smiley+".png");
+        File file = new File("src/" + smiley + ".png");
         ImageView image = new ImageView(new Image(file.toURI().toString()));
         image.setFitHeight(1.5 * SQUARE_SIZE);
         image.setFitWidth(1.5 * SQUARE_SIZE);
